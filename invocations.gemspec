@@ -19,5 +19,5 @@ Gem::Specification.new do |gem|
 
   gem.require_paths = ['lib']
 
-  gem.required_ruby_version = '~> 2.3.0' # Explicit Non-Support of Unsupported Ruby Versions
+  gem.required_ruby_version = ['~> 2.3', '>= 2.3.0'] # Explicit Non-Support of Unsupported Ruby Versions
 end
