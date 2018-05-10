@@ -1,0 +1,128 @@
+#+TITLE: Invocations
+#+LATEX: \pagebreak
+
+* Overview
+
+  ~Invocations~ are better partial functions for Ruby, because sometimes
+  =Proc#curry= just isn't enough.
+
+* What problem does this solve?
+
+  Partial function evaluation is a very useful tool, but understanding the state
+  carried by a curried =Proc= is often cumbersome and unintuitive.
+
+* How does Invocations address this problem?
+
+  ~Invocations~ provides a single class: the =Invocation=. It functions as a
+  drop-in alternative to a =Proc=, with a few notable improvements (none of
+  which break compatibility):
+
+    - An =Invocation= is implicitly self-currying. Which is to say that if you
+      call it without all the parameters it requires, it simply returns an
+      =Invocation= that requires the missing parameters.
+    - An =Invocation= allows non-keyword arguments to be given as keywords.
+    - An =Invocation= allows arguments to be given out of order, as keyword
+      arguments.
+    - An =Invocation= has several methods for inspection, including ones for
+      listing the missing arguments, identifying keyword inferences, explaining
+      how the underlying function will be called, and reporting internal state.
+
+* Installation
+
+  #+BEGIN_SRC shell
+    gem install invocations
+  #+END_SRC
+
+* How can I start using this majestic tool?
+
+  An =Invocation= is a drop-in alternative to =Proc=, or =lambda=. You can use
+  it as an explicit =&block=, etc. As a result, it's very easy to adapt existing
+  code to use it.
+
+  Let's lay out a simple function that will serve as our example, going forward.
+
+  This =power= function takes two arguments, =n= (a number) and =e= (an
+  exponent) and returns the result of raising =n= to =e=:
+
+  #+BEGIN_SRC ruby
+    lambda_power = lambda { |n, e| n ** e }
+  #+END_SRC
+
+  Now, this is somewhat contrived, because I've deliberately defined the
+  arguments in the least convenient order, for illustrative purposes.
+
+  The equivalent =Invocation= would be:
+
+  #+BEGIN_SRC ruby
+    invoke_power = Invocation.new { |n, e| n ** e }
+  #+END_SRC
+
+  ~Invocations~ includes an optional =Refinement= for that brings the syntax
+  more in line with =proc= and =lambda=:
+
+  #+BEGIN_SRC ruby
+    using Invocations
+    invoke_power = invocation { |n, e| n ** e }
+  #+END_SRC
+
+  Calling either of these is the same:
+
+  #+BEGIN_SRC ruby
+    lambda_power.(5, 2) #=> 25
+    invoke_power.(5, 2) #=> 25
+  #+END_SRC
+
+  Let's say we wanted to define =lambda_square= and =lambda_cube= functions,
+  that do what their names imply:
+
+  #+BEGIN_SRC ruby
+    lambda_square = lambda { |n| lambda_power.(n, 2) }
+    lambda_cube   = lambda { |n| lambda_power.(n, 3) }
+  #+END_SRC
+
+  The order of the arguments to =lambda_power= makes these definitions more
+  awkward. If instead, we had defined it like so:
+
+  #+BEGIN_SRC ruby
+    lambda_power = lambda { |e, n| n ** e }.curry
+  #+END_SRC
+
+  Then we could have done this:
+
+  #+BEGIN_SRC ruby
+    lambda_square = lambda_power.(2)
+    lambda_cube   = lambda_power.(3)
+  #+END_SRC
+
+  That said, we don't define every function we use. Often we use the functions
+  provided by a library, and if those have inconvenient argument ordering, too
+  bad.
+
+  If we had been using an =Invocation=, we could have done this:
+
+  #+BEGIN_SRC ruby
+    invoke_square = invoke_power.(e: 2)
+    invoke_cube   = invoke_power.(e: 3)
+  #+END_SRC
+
+** Wait what? Those weren't keyword arguments.
+
+   True, but the block parameters have names. Since it is a =SyntaxError= for a
+   block to have two parameters with the same name, an =Invocation= can Do The
+   Right Thing.
+
+* Explore It!
+
+  ~Invocations~ really shines when used with a great REPL like [[https://github.com/pry/pry][pry]].
+  
+  I've uploaded a short screencast [[https://asciinema.org/a/DW4ctct8Nkx1qdwjmOF9Eyw4O][here]] that demonstrates the sort of
+  information an =Invocation= provides (using the example scenario above).
+
+* License
+
+  ~Invocations~ is available under the [[https://tldrlegal.com/license/mit-license][MIT License]]. See ~LICENSE.txt~ for the
+  full text.
+
+* Contributors
+
+  - [[https://colstrom.github.io/][Chris Olstrom]] | [[mailto:chris@olstrom.com][e-mail]] | [[https://twitter.com/ChrisOlstrom][Twitter]]
