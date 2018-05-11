@@ -9,7 +9,7 @@
 # keywords.
 #
 class Invocation
-  %i(call yield []).each { |name| singleton_class.alias_method name, :new }
+  %i(call yield []).each { |name| singleton_class.send :alias_method, name, :new }
 
   # Creates a new Invocation.
   #
